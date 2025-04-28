@@ -13,7 +13,7 @@ import (
 
 // Package type metadata.
 const (
-	Group   = "rabbitmq.github.com"
+	Group   = "rabbitmq.evaneos.com"
 	Version = "v1beta1"
 )
 

@@ -1,0 +1,11 @@
+apiVersion: rabbitmq.evaneos.com/v1alpha1
+kind: Queue
+metadata:
+  name: test
+spec:
+  forProvider:
+    name: test
+    settings:
+    - arguments:
+        x-queue-type: quorum
+    vhost: "test"

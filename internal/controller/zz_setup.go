@@ -9,16 +9,36 @@ import (
 
 	"github.com/crossplane/upjet/pkg/controller"
 
-	resource "github.com/upbound/upjet-provider-template/internal/controller/null/resource"
-	providerconfig "github.com/upbound/upjet-provider-template/internal/controller/providerconfig"
+	providerconfig "github.com/evaneos/provider-rabbitmq/internal/controller/providerconfig"
+	binding "github.com/evaneos/provider-rabbitmq/internal/controller/rabbitmq/binding"
+	exchange "github.com/evaneos/provider-rabbitmq/internal/controller/rabbitmq/exchange"
+	federationupstream "github.com/evaneos/provider-rabbitmq/internal/controller/rabbitmq/federationupstream"
+	operatorpolicy "github.com/evaneos/provider-rabbitmq/internal/controller/rabbitmq/operatorpolicy"
+	permissions "github.com/evaneos/provider-rabbitmq/internal/controller/rabbitmq/permissions"
+	policy "github.com/evaneos/provider-rabbitmq/internal/controller/rabbitmq/policy"
+	queue "github.com/evaneos/provider-rabbitmq/internal/controller/rabbitmq/queue"
+	shovel "github.com/evaneos/provider-rabbitmq/internal/controller/rabbitmq/shovel"
+	topicpermissions "github.com/evaneos/provider-rabbitmq/internal/controller/rabbitmq/topicpermissions"
+	user "github.com/evaneos/provider-rabbitmq/internal/controller/rabbitmq/user"
+	vhost "github.com/evaneos/provider-rabbitmq/internal/controller/rabbitmq/vhost"
 )
 
 // Setup creates all controllers with the supplied logger and adds them to
 // the supplied manager.
 func Setup(mgr ctrl.Manager, o controller.Options) error {
 	for _, setup := range []func(ctrl.Manager, controller.Options) error{
-		resource.Setup,
 		providerconfig.Setup,
+		binding.Setup,
+		exchange.Setup,
+		federationupstream.Setup,
+		operatorpolicy.Setup,
+		permissions.Setup,
+		policy.Setup,
+		queue.Setup,
+		shovel.Setup,
+		topicpermissions.Setup,
+		user.Setup,
+		vhost.Setup,
 	} {
 		if err := setup(mgr, o); err != nil {
 			return err

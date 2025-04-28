@@ -1,0 +1,75 @@
+apiVersion: rabbitmq.evaneos.com/v1alpha1
+kind: Shovel
+metadata:
+  annotations:
+    meta.upbound.io/example-id: rabbitmq/v1alpha1/shovel
+  labels:
+    testing.upbound.io/example-name: shovelTest
+  name: shoveltest
+spec:
+  forProvider:
+    info:
+    - destinationQueue: test
+      destinationUri: amqp:///test
+      sourceExchange: test
+      sourceExchangeKey: test
+      sourceUri: amqp:///test
+    name: shovelTest
+    vhostSelector:
+      matchLabels:
+        testing.upbound.io/example-name: test
+
+---
+
+apiVersion: rabbitmq.evaneos.com/v1alpha1
+kind: Exchange
+metadata:
+  annotations:
+    meta.upbound.io/example-id: rabbitmq/v1alpha1/shovel
+  labels:
+    testing.upbound.io/example-name: test
+  name: test
+spec:
+  forProvider:
+    name: test_exchange
+    settings:
+    - autoDelete: true
+      durable: false
+      type: fanout
+    vhostSelector:
+      matchLabels:
+        testing.upbound.io/example-name: test
+
+---
+
+apiVersion: rabbitmq.evaneos.com/v1alpha1
+kind: Queue
+metadata:
+  annotations:
+    meta.upbound.io/example-id: rabbitmq/v1alpha1/shovel
+  labels:
+    testing.upbound.io/example-name: test
+  name: test
+spec:
+  forProvider:
+    name: test_queue
+    settings:
+    - autoDelete: true
+      durable: false
+    vhostSelector:
+      matchLabels:
+        testing.upbound.io/example-name: test
+
+---
+
+apiVersion: rabbitmq.evaneos.com/v1alpha1
+kind: Vhost
+metadata:
+  annotations:
+    meta.upbound.io/example-id: rabbitmq/v1alpha1/shovel
+  labels:
+    testing.upbound.io/example-name: test
+  name: test
+spec:
+  forProvider:
+    name: test

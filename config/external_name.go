@@ -10,7 +10,17 @@ import "github.com/crossplane/upjet/pkg/config"
 // provider.
 var ExternalNameConfigs = map[string]config.ExternalName{
 	// Import requires using a randomly generated ID from provider: nl-2e21sda
-	"null_resource": config.IdentifierFromProvider,
+	"rabbitmq_binding": config.IdentifierFromProvider,
+	"rabbitmq_exchange": config.IdentifierFromProvider,
+	"rabbitmq_federation_upstream": config.IdentifierFromProvider,
+	"rabbitmq_operator_policy": config.IdentifierFromProvider,
+	"rabbitmq_permissions": config.IdentifierFromProvider,
+	"rabbitmq_policy": config.IdentifierFromProvider,
+	"rabbitmq_queue": config.IdentifierFromProvider,
+	"rabbitmq_shovel": config.IdentifierFromProvider,
+	"rabbitmq_topic_permissions": config.IdentifierFromProvider,
+	"rabbitmq_user": config.IdentifierFromProvider,
+	"rabbitmq_vhost": config.IdentifierFromProvider,
 }
 
 // ExternalNameConfigurations applies all external name configs listed in the

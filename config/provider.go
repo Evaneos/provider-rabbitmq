@@ -10,12 +10,22 @@ import (
 
 	ujconfig "github.com/crossplane/upjet/pkg/config"
 
-	"github.com/upbound/upjet-provider-template/config/null"
+	"github.com/evaneos/provider-rabbitmq/config/binding"
+	"github.com/evaneos/provider-rabbitmq/config/exchange"
+	"github.com/evaneos/provider-rabbitmq/config/federation"
+	"github.com/evaneos/provider-rabbitmq/config/operator"
+	"github.com/evaneos/provider-rabbitmq/config/permissions"
+	"github.com/evaneos/provider-rabbitmq/config/policy"
+	"github.com/evaneos/provider-rabbitmq/config/queue"
+	"github.com/evaneos/provider-rabbitmq/config/shovel"
+	"github.com/evaneos/provider-rabbitmq/config/topic"
+	"github.com/evaneos/provider-rabbitmq/config/user"
+	"github.com/evaneos/provider-rabbitmq/config/vhost"
 )
 
 const (
-	resourcePrefix = "template"
-	modulePath     = "github.com/upbound/upjet-provider-template"
+	resourcePrefix = "rabbitmq"
+	modulePath     = "github.com/evaneos/provider-rabbitmq"
 )
 
 //go:embed schema.json
@@ -27,7 +37,7 @@ var providerMetadata string
 // GetProvider returns provider configuration
 func GetProvider() *ujconfig.Provider {
 	pc := ujconfig.NewProvider([]byte(providerSchema), resourcePrefix, modulePath, []byte(providerMetadata),
-		ujconfig.WithRootGroup("template.upbound.io"),
+		ujconfig.WithRootGroup("evaneos.com"),
 		ujconfig.WithIncludeList(ExternalNameConfigured()),
 		ujconfig.WithFeaturesPackage("internal/features"),
 		ujconfig.WithDefaultResourceOptions(
@@ -36,7 +46,17 @@ func GetProvider() *ujconfig.Provider {
 
 	for _, configure := range []func(provider *ujconfig.Provider){
 		// add custom config functions
-		null.Configure,
+		binding.Configure,
+		exchange.Configure,
+		federation.Configure,
+		operator.Configure,
+		permissions.Configure,
+		policy.Configure,
+		queue.Configure,
+		shovel.Configure,
+		topic.Configure,
+		user.Configure,
+		vhost.Configure,
 	} {
 		configure(pc)
 	}

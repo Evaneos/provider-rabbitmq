@@ -1,0 +1,53 @@
+apiVersion: rabbitmq.evaneos.com/v1alpha1
+kind: Exchange
+metadata:
+  annotations:
+    meta.upbound.io/example-id: rabbitmq/v1alpha1/exchange
+  labels:
+    testing.upbound.io/example-name: test
+  name: test
+spec:
+  forProvider:
+    name: test
+    settings:
+    - autoDelete: true
+      durable: false
+      type: fanout
+    vhostSelector:
+      matchLabels:
+        testing.upbound.io/example-name: guest
+
+---
+
+apiVersion: rabbitmq.evaneos.com/v1alpha1
+kind: Permissions
+metadata:
+  annotations:
+    meta.upbound.io/example-id: rabbitmq/v1alpha1/exchange
+  labels:
+    testing.upbound.io/example-name: guest
+  name: guest
+spec:
+  forProvider:
+    permissions:
+    - configure: .*
+      read: .*
+      write: .*
+    user: guest
+    vhostSelector:
+      matchLabels:
+        testing.upbound.io/example-name: test
+
+---
+
+apiVersion: rabbitmq.evaneos.com/v1alpha1
+kind: Vhost
+metadata:
+  annotations:
+    meta.upbound.io/example-id: rabbitmq/v1alpha1/exchange
+  labels:
+    testing.upbound.io/example-name: test
+  name: test
+spec:
+  forProvider:
+    name: test

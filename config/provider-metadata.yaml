@@ -1,40 +1,616 @@
-name: hashicorp/null
+name: cyrilgdn/rabbitmq
 resources:
-    null_resource:
+    rabbitmq_binding:
         subCategory: ""
-        description: The null_resource resource implements the standard resource lifecycle but takes no further action. On Terraform 1.4 and later, use the terraform_data resource type https://developer.hashicorp.com/terraform/language/resources/terraform-data instead. The triggers argument allows specifying an arbitrary set of values that, when changed, will cause the resource to be replaced.
-        name: null_resource
-        title: null_resource Resource - terraform-provider-null
+        description: Creates and manages a binding on a RabbitMQ server.
+        name: rabbitmq_binding
+        title: rabbitmq_binding
         examples:
-            - name: cluster
+            - name: test
               manifest: |-
                 {
-                  "connection": [
-                    {
-                      "host": "${element(aws_instance.cluster[*].public_ip, 0)}"
-                    }
-                  ],
-                  "provisioner": {
-                    "remote-exec": [
-                      {
-                        "inline": [
-                          "bootstrap-cluster.sh ${join(\" \",\n      aws_instance.cluster[*].private_ip)}"
-                        ]
-                      }
-                    ]
-                  },
-                  "triggers": {
-                    "cluster_instance_ids": "${join(\",\", aws_instance.cluster[*].id)}"
-                  }
+                  "destination": "${rabbitmq_queue.test.name}",
+                  "destination_type": "queue",
+                  "routing_key": "#",
+                  "source": "${rabbitmq_exchange.test.name}",
+                  "vhost": "${rabbitmq_vhost.test.name}"
                 }
               dependencies:
-                aws_instance.cluster: |-
+                rabbitmq_exchange.test: |-
                     {
-                      "ami": "ami-0dcc1e21636832c5d",
-                      "count": 3,
-                      "instance_type": "m5.large"
+                      "name": "test",
+                      "settings": [
+                        {
+                          "auto_delete": true,
+                          "durable": false,
+                          "type": "fanout"
+                        }
+                      ],
+                      "vhost": "${rabbitmq_permissions.guest.vhost}"
+                    }
+                rabbitmq_permissions.guest: |-
+                    {
+                      "permissions": [
+                        {
+                          "configure": ".*",
+                          "read": ".*",
+                          "write": ".*"
+                        }
+                      ],
+                      "user": "guest",
+                      "vhost": "${rabbitmq_vhost.test.name}"
+                    }
+                rabbitmq_queue.test: |-
+                    {
+                      "name": "test",
+                      "settings": [
+                        {
+                          "auto_delete": false,
+                          "durable": true
+                        }
+                      ],
+                      "vhost": "${rabbitmq_permissions.guest.vhost}"
+                    }
+                rabbitmq_vhost.test: |-
+                    {
+                      "name": "test"
                     }
         argumentDocs:
-            id: (String) This is set to a random value at create time.
-            triggers: (Map of String) A map of arbitrary strings that, when changed, will force the null resource to be replaced, re-running any associated provisioners.
+            arguments: '- (Optional) Additional key/value arguments for the binding.'
+            destination: '- (Required) The destination queue or exchange.'
+            destination_type: '- (Required) The type of destination (queue or exchange).'
+            properties_key: '- A unique key to refer to the binding.'
+            routing_key: '- (Optional) A routing key for the binding.'
+            source: '- (Required) The source exchange.'
+            vhost: '- (Required) The vhost to create the resource in.'
+        importStatements: []
+    rabbitmq_exchange:
+        subCategory: ""
+        description: Creates and manages an exchange on a RabbitMQ server.
+        name: rabbitmq_exchange
+        title: rabbitmq_exchange
+        examples:
+            - name: test
+              manifest: |-
+                {
+                  "name": "test",
+                  "settings": [
+                    {
+                      "auto_delete": true,
+                      "durable": false,
+                      "type": "fanout"
+                    }
+                  ],
+                  "vhost": "${rabbitmq_permissions.guest.vhost}"
+                }
+              dependencies:
+                rabbitmq_permissions.guest: |-
+                    {
+                      "permissions": [
+                        {
+                          "configure": ".*",
+                          "read": ".*",
+                          "write": ".*"
+                        }
+                      ],
+                      "user": "guest",
+                      "vhost": "${rabbitmq_vhost.test.name}"
+                    }
+                rabbitmq_vhost.test: |-
+                    {
+                      "name": "test"
+                    }
+        argumentDocs:
+            name: '- (Required) The name of the exchange.'
+            settings: |-
+                - (Required) The settings of the exchange. The structure is
+                described below.
+            settings.arguments: '- (Optional) Additional key/value settings for the exchange.'
+            settings.auto_delete: |-
+                - (Optional) Whether the exchange will self-delete when all
+                queues have finished using it.
+            settings.durable: |-
+                - (Optional) Whether the exchange survives server restarts.
+                Defaults to false.
+            settings.type: '- (Required) The type of exchange.'
+            vhost: '- (Required) The vhost to create the resource in.'
+        importStatements: []
+    rabbitmq_federation_upstream:
+        subCategory: ""
+        description: Creates and manages a federation upstream on a RabbitMQ server.
+        name: rabbitmq_federation_upstream
+        title: rabbitmq_federation_upstream
+        examples:
+            - name: foo
+              manifest: |-
+                {
+                  "definition": [
+                    {
+                      "ack_mode": "on-confirm",
+                      "max_hops": 1,
+                      "prefetch_count": 1000,
+                      "reconnect_delay": 5,
+                      "trust_user_id": false,
+                      "uri": "amqp://guest:guest@upstream-server-name:5672/%2f"
+                    }
+                  ],
+                  "name": "foo",
+                  "vhost": "${rabbitmq_permissions.guest.vhost}"
+                }
+              references:
+                vhost: rabbitmq_permissions.guest.vhost
+              dependencies:
+                rabbitmq_exchange.foo: |-
+                    {
+                      "name": "foo",
+                      "settings": [
+                        {
+                          "durable": "true",
+                          "type": "topic"
+                        }
+                      ],
+                      "vhost": "${rabbitmq_permissions.guest.vhost}"
+                    }
+                rabbitmq_permissions.guest: |-
+                    {
+                      "permissions": [
+                        {
+                          "configure": ".*",
+                          "read": ".*",
+                          "write": ".*"
+                        }
+                      ],
+                      "user": "guest",
+                      "vhost": "${rabbitmq_vhost.test.name}"
+                    }
+                rabbitmq_policy.foo: |-
+                    {
+                      "name": "foo",
+                      "policy": [
+                        {
+                          "apply_to": "exchanges",
+                          "definition": {
+                            "federation-upstream": "${rabbitmq_federation_upstream.foo.name}"
+                          },
+                          "pattern": "(^${rabbitmq_exchange.foo.name}$)",
+                          "priority": 1
+                        }
+                      ],
+                      "vhost": "${rabbitmq_permissions.guest.vhost}"
+                    }
+                rabbitmq_vhost.test: |-
+                    {
+                      "name": "test"
+                    }
+        argumentDocs:
+            component: '- (Computed) Set to federation-upstream by the underlying RabbitMQ provider. You do not set this attribute but will see it in state and plan output.'
+            definition: '- (Required) The configuration of the federation upstream. The structure is described below.'
+            definition.ack_mode: '- (Optional) Determines how the link should acknowledge messages. Valid values are on-confirm, on-publish, and no-ack. Default is on-confirm.'
+            definition.exchange: '- (Optional)  The name of the upstream exchange.'
+            definition.expires: '- (Optional) The expiry time (in milliseconds) after which an upstream queue for a federated exchange may be deleted if a connection to the upstream is lost.'
+            definition.max_hops: '- (Optional) Maximum number of federation links that messages can traverse before being dropped. Default is 1.'
+            definition.message_ttl: '- (Optional) The expiry time (in milliseconds) for messages in the upstream queue for a federated exchange (see expires).'
+            definition.prefetch_count: '- (Optional) Maximum number of unacknowledged messages that may be in flight over a federation link at one time. Default is 1000.'
+            definition.queue: '- (Optional) The name of the upstream queue.'
+            definition.reconnect_delay: '- (Optional) Time in seconds to wait after a network link goes down before attempting reconnection. Default is 5.'
+            definition.trust_user_id: '- (Optional) Determines how federation should interact with the validated user-id feature. Default is false.'
+            definition.uri: '- (Required) The AMQP URI(s) for the upstream. Note that the URI may contain sensitive information, such as a password.'
+            name: '- (Required) The name of the federation upstream.'
+            vhost: '- (Required) The vhost to create the resource in.'
+        importStatements: []
+    rabbitmq_operator_policy:
+        subCategory: ""
+        description: Creates and manages an operator policy on a RabbitMQ server.
+        name: rabbitmq_operator_policy
+        title: rabbitmq_operator_policy
+        examples:
+            - name: test
+              manifest: |-
+                {
+                  "name": "test",
+                  "policy": [
+                    {
+                      "apply_to": "queues",
+                      "definition": {
+                        "expires": 1800000,
+                        "message-ttl": 3600000
+                      },
+                      "pattern": ".*",
+                      "priority": 0
+                    }
+                  ],
+                  "vhost": "${rabbitmq_permissions.guest.vhost}"
+                }
+              dependencies:
+                rabbitmq_permissions.guest: |-
+                    {
+                      "permissions": [
+                        {
+                          "configure": ".*",
+                          "read": ".*",
+                          "write": ".*"
+                        }
+                      ],
+                      "user": "guest",
+                      "vhost": "${rabbitmq_vhost.test.name}"
+                    }
+                rabbitmq_vhost.test: |-
+                    {
+                      "name": "test"
+                    }
+        argumentDocs:
+            name: '- (Required) The name of the operator policy.'
+            policy: |-
+                - (Required) The settings of the operator policy. The structure is
+                described below.
+            policy.apply_to: '- (Required) Can be "queues".'
+            policy.definition: |-
+                - (Required) Key/value pairs of the operator policy definition. See the
+                RabbitMQ documentation for definition references and examples.
+            policy.pattern: '- (Required) A pattern to match an exchange or queue name.'
+            policy.priority: '- (Required) The policy with the greater priority is applied first.'
+            vhost: '- (Required) The vhost to create the resource in.'
+        importStatements: []
+    rabbitmq_permissions:
+        subCategory: ""
+        description: Creates and manages a user's permissions on a RabbitMQ server.
+        name: rabbitmq_permissions
+        title: rabbitmq_permissions
+        examples:
+            - name: test
+              manifest: |-
+                {
+                  "permissions": [
+                    {
+                      "configure": ".*",
+                      "read": ".*",
+                      "write": ".*"
+                    }
+                  ],
+                  "user": "${rabbitmq_user.test.name}",
+                  "vhost": "${rabbitmq_vhost.test.name}"
+                }
+              dependencies:
+                rabbitmq_user.test: |-
+                    {
+                      "name": "mctest",
+                      "password": "foobar",
+                      "tags": [
+                        "administrator"
+                      ]
+                    }
+                rabbitmq_vhost.test: |-
+                    {
+                      "name": "test"
+                    }
+        argumentDocs:
+            permissions: |-
+                - (Required) The settings of the permissions. The structure is
+                described below.
+            permissions.configure: '- (Required) The "configure" ACL.'
+            permissions.read: '- (Required) The "read" ACL.'
+            permissions.write: '- (Required) The "write" ACL.'
+            user: '- (Required) The user to apply the permissions to.'
+            vhost: '- (Required) The vhost to create the resource in.'
+        importStatements: []
+    rabbitmq_policy:
+        subCategory: ""
+        description: Creates and manages a policy on a RabbitMQ server.
+        name: rabbitmq_policy
+        title: rabbitmq_policy
+        examples:
+            - name: test
+              manifest: |-
+                {
+                  "name": "test",
+                  "policy": [
+                    {
+                      "apply_to": "all",
+                      "definition": {
+                        "ha-mode": "all"
+                      },
+                      "pattern": ".*",
+                      "priority": 0
+                    }
+                  ],
+                  "vhost": "${rabbitmq_permissions.guest.vhost}"
+                }
+              dependencies:
+                rabbitmq_permissions.guest: |-
+                    {
+                      "permissions": [
+                        {
+                          "configure": ".*",
+                          "read": ".*",
+                          "write": ".*"
+                        }
+                      ],
+                      "user": "guest",
+                      "vhost": "${rabbitmq_vhost.test.name}"
+                    }
+                rabbitmq_vhost.test: |-
+                    {
+                      "name": "test"
+                    }
+        argumentDocs:
+            name: '- (Required) The name of the policy.'
+            policy: |-
+                - (Required) The settings of the policy. The structure is
+                described below.
+            policy.apply_to: '- (Required) Can either be "exchanges", "queues", or "all".'
+            policy.definition: |-
+                - (Required) Key/value pairs of the policy definition. See the
+                RabbitMQ documentation for definition references and examples.
+            policy.pattern: '- (Required) A pattern to match an exchange or queue name.'
+            policy.priority: '- (Required) The policy with the greater priority is applied first.'
+            vhost: '- (Required) The vhost to create the resource in.'
+        importStatements: []
+    rabbitmq_queue:
+        subCategory: ""
+        description: Creates and manages a queue on a RabbitMQ server.
+        name: rabbitmq_queue
+        title: rabbitmq_queue
+        examples:
+            - name: test
+              manifest: |-
+                {
+                  "name": "test",
+                  "settings": [
+                    {
+                      "arguments": {
+                        "x-queue-type": "quorum"
+                      },
+                      "auto_delete": true,
+                      "durable": false
+                    }
+                  ],
+                  "vhost": "${rabbitmq_permissions.guest.vhost}"
+                }
+              dependencies:
+                rabbitmq_permissions.guest: |-
+                    {
+                      "permissions": [
+                        {
+                          "configure": ".*",
+                          "read": ".*",
+                          "write": ".*"
+                        }
+                      ],
+                      "user": "guest",
+                      "vhost": "${rabbitmq_vhost.test.name}"
+                    }
+                rabbitmq_vhost.test: |-
+                    {
+                      "name": "test"
+                    }
+            - name: test
+              manifest: |-
+                {
+                  "name": "test",
+                  "settings": [
+                    {
+                      "arguments_json": "${var.arguments}",
+                      "auto_delete": true,
+                      "durable": false
+                    }
+                  ],
+                  "vhost": "${rabbitmq_permissions.guest.vhost}"
+                }
+              dependencies:
+                rabbitmq_permissions.guest: |-
+                    {
+                      "permissions": [
+                        {
+                          "configure": ".*",
+                          "read": ".*",
+                          "write": ".*"
+                        }
+                      ],
+                      "user": "guest",
+                      "vhost": "${rabbitmq_vhost.test.name}"
+                    }
+                rabbitmq_vhost.test: |-
+                    {
+                      "name": "test"
+                    }
+        argumentDocs:
+            name: '- (Required) The name of the queue.'
+            settings: |-
+                - (Required) The settings of the queue. The structure is
+                described below.
+            settings.arguments: |-
+                - (Optional) Additional key/value settings for the queue.
+                All values will be sent to RabbitMQ as a string. If you require non-string
+                values, use arguments_json.
+            settings.arguments_json: |-
+                - (Optional) A nested JSON string which contains additional
+                settings for the queue. This is useful for when the arguments contain
+                non-string values.
+            settings.auto_delete: |-
+                - (Optional) Whether the queue will self-delete when all
+                consumers have unsubscribed.
+            settings.durable: |-
+                - (Optional) Whether the queue survives server restarts.
+                Defaults to false.
+            vhost: '- (Required) The vhost to create the resource in.'
+            x-queue-type: '- (Optional) this argument sets the queue type. Possible values: classic (default), quorum, stream .'
+        importStatements: []
+    rabbitmq_shovel:
+        subCategory: ""
+        description: Creates and manages a shovel on a RabbitMQ server.
+        name: rabbitmq_shovel
+        title: rabbitmq_shovel
+        examples:
+            - name: shovelTest
+              manifest: |-
+                {
+                  "info": [
+                    {
+                      "destination_queue": "${rabbitmq_queue.test.name}",
+                      "destination_uri": "amqp:///test",
+                      "source_exchange": "${rabbitmq_exchange.test.name}",
+                      "source_exchange_key": "test",
+                      "source_uri": "amqp:///test"
+                    }
+                  ],
+                  "name": "shovelTest",
+                  "vhost": "${rabbitmq_vhost.test.name}"
+                }
+              dependencies:
+                rabbitmq_exchange.test: |-
+                    {
+                      "name": "test_exchange",
+                      "settings": [
+                        {
+                          "auto_delete": true,
+                          "durable": false,
+                          "type": "fanout"
+                        }
+                      ],
+                      "vhost": "${rabbitmq_vhost.test.name}"
+                    }
+                rabbitmq_queue.test: |-
+                    {
+                      "name": "test_queue",
+                      "settings": [
+                        {
+                          "auto_delete": true,
+                          "durable": false
+                        }
+                      ],
+                      "vhost": "${rabbitmq_vhost.test.name}"
+                    }
+                rabbitmq_vhost.test: |-
+                    {
+                      "name": "test"
+                    }
+        argumentDocs:
+            ack_mode: |-
+                - (Optional) Determines how the shovel should acknowledge messages. Possible values are: on-confirm, on-publish and no-ack.
+                Defaults to on-confirm.
+            add_forward_headers: '- (Optional; Deprecated, please use destination_add_forward_headers) Whether to add x-shovelled headers to shovelled messages.'
+            delete_after: '- (Optional; Deprecated, please use source_delete_after) Determines when (if ever) the shovel should delete itself. Possible values are: never, queue-length or an integer.'
+            destination_add_forward_headers: '- (Optional) Whether to add x-shovelled headers to shovelled messages.'
+            destination_add_timestamp_headers: |-
+                - (Optional) Whether to add x-shovelled-timestamp headers to shovelled messages.
+                Defaults to false.
+            destination_address: '- (Optional) The AMQP 1.0 destination link address.'
+            destination_application_properties: '- (Optional) Application properties to set when shovelling messages.'
+            destination_exchange: |-
+                - (Optional) The exchange to which messages should be published.
+                Either this or destination_queue must be specified but not both.
+            destination_exchange_key: '- (Optional) The routing key when using destination_exchange.'
+            destination_properties: '- (Optional) Properties to overwrite when shovelling messages.'
+            destination_protocol: |-
+                - (Optional) The protocol (amqp091 or amqp10) to use when connecting to the destination.
+                Defaults to amqp091.
+            destination_publish_properties: '- (Optional) A map of properties to overwrite when shovelling messages.'
+            destination_queue: |-
+                - (Optional) The queue to which messages should be published.
+                Either this or destination_exchange must be specified but not both.
+            destination_uri: '- (Required) The amqp uri for the destination .'
+            info: |-
+                - (Required) The settings of the dynamic shovel. The structure is
+                described below.
+            name: '- (Required) The shovel name.'
+            prefetch_count: '- (Optional; Deprecated, please use source_prefetch_count) The maximum number of unacknowledged messages copied over a shovel at any one time.'
+            reconnect_delay: |-
+                - (Optional) The duration in seconds to reconnect to a broker after disconnected.
+                Defaults to 1.
+            source_address: '- (Optional) The AMQP 1.0 source link address.'
+            source_delete_after: '- (Optional) Determines when (if ever) the shovel should delete itself. Possible values are: never, queue-length or an integer.'
+            source_exchange: |-
+                - (Optional) The exchange from which to consume.
+                Either this or source_queue must be specified but not both.
+            source_exchange_key: '- (Optional) The routing key when using source_exchange.'
+            source_prefetch_count: '- (Optional) The maximum number of unacknowledged messages copied over a shovel at any one time.'
+            source_protocol: |-
+                - (Optional) The protocol (amqp091 or amqp10) to use when connecting to the source.
+                Defaults to amqp091.
+            source_queue: |-
+                - (Optional) The queue from which to consume.
+                Either this or source_exchange must be specified but not both.
+            source_uri: '- (Required) The amqp uri for the source.'
+            vhost: '- (Required) The vhost to create the resource in.'
+        importStatements: []
+    rabbitmq_topic_permissions:
+        subCategory: ""
+        description: Creates and manages a user's topic permissions on a RabbitMQ server.
+        name: rabbitmq_topic_permissions
+        title: rabbitmq_topic_permissions
+        examples:
+            - name: test
+              manifest: |-
+                {
+                  "permissions": [
+                    {
+                      "exchange": "amq.topic",
+                      "read": ".*",
+                      "write": ".*"
+                    }
+                  ],
+                  "user": "${rabbitmq_user.test.name}",
+                  "vhost": "${rabbitmq_vhost.test.name}"
+                }
+              dependencies:
+                rabbitmq_user.test: |-
+                    {
+                      "name": "mctest",
+                      "password": "foobar",
+                      "tags": [
+                        "administrator"
+                      ]
+                    }
+                rabbitmq_vhost.test: |-
+                    {
+                      "name": "test"
+                    }
+        argumentDocs:
+            permissions: |-
+                - (Required) The settings of the permissions. The structure is
+                described below.
+            permissions.exchange: '- (Required) The exchange to set the permissions for.'
+            permissions.read: '- (Required) The "read" ACL.'
+            permissions.write: '- (Required) The "write" ACL.'
+            user: '- (Required) The user to apply the permissions to.'
+            vhost: '- (Required) The vhost to create the resource in.'
+        importStatements: []
+    rabbitmq_user:
+        subCategory: ""
+        description: Creates and manages a user on a RabbitMQ server.
+        name: rabbitmq_user
+        title: rabbitmq_user
+        examples:
+            - name: test
+              manifest: |-
+                {
+                  "name": "mctest",
+                  "password": "foobar",
+                  "tags": [
+                    "administrator",
+                    "management"
+                  ]
+                }
+        argumentDocs:
+            name: '- (Required) The name of the user.'
+            password: |-
+                - (Required) The password of the user. The value of this argument
+                is plain-text so make sure to secure where this is defined.
+            tags: |-
+                - (Optional) Which permission model to apply to the user. Valid
+                options are: management, policymaker, monitoring, and administrator.
+        importStatements: []
+    rabbitmq_vhost:
+        subCategory: ""
+        description: Creates and manages a vhost on a RabbitMQ server.
+        name: rabbitmq_vhost
+        title: rabbitmq_vhost
+        examples:
+            - name: my_vhost
+              manifest: |-
+                {
+                  "name": "my_vhost"
+                }
+        argumentDocs:
+            name: '- (Required) The name of the vhost.'
         importStatements: []

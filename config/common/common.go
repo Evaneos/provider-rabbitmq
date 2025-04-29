@@ -8,7 +8,7 @@ import (
 	jresource "github.com/crossplane/upjet/pkg/resource"
 )
 
-// ExtractResourceID extracts the value of `spec.atProvider.id`
+// ExtractResourceName extracts the value of `spec.atProvider.id`
 // from a Terraformed resource. If mr is not a Terraformed
 // resource, returns an empty string.
 func ExtractResourceName() reference.ExtractValueFn {

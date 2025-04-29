@@ -31,7 +31,17 @@ type BindingInitParameters struct {
 	RoutingKey *string `json:"routingKey,omitempty" tf:"routing_key,omitempty"`
 
 	// The source exchange.
+	// +crossplane:generate:reference:type=github.com/evaneos/provider-rabbitmq/apis/rabbitmq/v1alpha1.Exchange
+	// +crossplane:generate:reference:extractor=github.com/evaneos/provider-rabbitmq/config/common.ExtractResourceName()
 	Source *string `json:"source,omitempty" tf:"source,omitempty"`
+
+	// Reference to a Exchange in rabbitmq to populate source.
+	// +kubebuilder:validation:Optional
+	SourceRef *v1.Reference `json:"sourceRef,omitempty" tf:"-"`
+
+	// Selector for a Exchange in rabbitmq to populate source.
+	// +kubebuilder:validation:Optional
+	SourceSelector *v1.Selector `json:"sourceSelector,omitempty" tf:"-"`
 
 	// The vhost to create the resource in.
 	// +crossplane:generate:reference:type=github.com/evaneos/provider-rabbitmq/apis/rabbitmq/v1alpha1.Vhost
@@ -98,8 +108,18 @@ type BindingParameters struct {
 	RoutingKey *string `json:"routingKey,omitempty" tf:"routing_key,omitempty"`
 
 	// The source exchange.
+	// +crossplane:generate:reference:type=github.com/evaneos/provider-rabbitmq/apis/rabbitmq/v1alpha1.Exchange
+	// +crossplane:generate:reference:extractor=github.com/evaneos/provider-rabbitmq/config/common.ExtractResourceName()
 	// +kubebuilder:validation:Optional
 	Source *string `json:"source,omitempty" tf:"source,omitempty"`
+
+	// Reference to a Exchange in rabbitmq to populate source.
+	// +kubebuilder:validation:Optional
+	SourceRef *v1.Reference `json:"sourceRef,omitempty" tf:"-"`
+
+	// Selector for a Exchange in rabbitmq to populate source.
+	// +kubebuilder:validation:Optional
+	SourceSelector *v1.Selector `json:"sourceSelector,omitempty" tf:"-"`
 
 	// The vhost to create the resource in.
 	// +crossplane:generate:reference:type=github.com/evaneos/provider-rabbitmq/apis/rabbitmq/v1alpha1.Vhost
@@ -153,7 +173,6 @@ type Binding struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	// +kubebuilder:validation:XValidation:rule="!('*' in self.managementPolicies || 'Create' in self.managementPolicies || 'Update' in self.managementPolicies) || has(self.forProvider.destination) || (has(self.initProvider) && has(self.initProvider.destination))",message="spec.forProvider.destination is a required parameter"
 	// +kubebuilder:validation:XValidation:rule="!('*' in self.managementPolicies || 'Create' in self.managementPolicies || 'Update' in self.managementPolicies) || has(self.forProvider.destinationType) || (has(self.initProvider) && has(self.initProvider.destinationType))",message="spec.forProvider.destinationType is a required parameter"
-	// +kubebuilder:validation:XValidation:rule="!('*' in self.managementPolicies || 'Create' in self.managementPolicies || 'Update' in self.managementPolicies) || has(self.forProvider.source) || (has(self.initProvider) && has(self.initProvider.source))",message="spec.forProvider.source is a required parameter"
 	Spec   BindingSpec   `json:"spec"`
 	Status BindingStatus `json:"status,omitempty"`
 }

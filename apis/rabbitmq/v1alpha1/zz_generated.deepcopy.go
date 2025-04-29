@@ -84,6 +84,16 @@ func (in *BindingInitParameters) DeepCopyInto(out *BindingInitParameters) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.SourceRef != nil {
+		in, out := &in.SourceRef, &out.SourceRef
+		*out = new(v1.Reference)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.SourceSelector != nil {
+		in, out := &in.SourceSelector, &out.SourceSelector
+		*out = new(v1.Selector)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.Vhost != nil {
 		in, out := &in.Vhost, &out.Vhost
 		*out = new(string)
@@ -257,6 +267,16 @@ func (in *BindingParameters) DeepCopyInto(out *BindingParameters) {
 		in, out := &in.Source, &out.Source
 		*out = new(string)
 		**out = **in
+	}
+	if in.SourceRef != nil {
+		in, out := &in.SourceRef, &out.SourceRef
+		*out = new(v1.Reference)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.SourceSelector != nil {
+		in, out := &in.SourceSelector, &out.SourceSelector
+		*out = new(v1.Selector)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.Vhost != nil {
 		in, out := &in.Vhost, &out.Vhost

@@ -11,5 +11,9 @@ func Configure(p *config.Provider) {
 		r.References["vhost"] = config.Reference{
 			TerraformName: "rabbitmq_vhost",
 		}
+		r.References["source"] = config.Reference{
+			TerraformName: "rabbitmq_exchange",
+			Extractor:     "github.com/evaneos/provider-rabbitmq/config/common.ExtractResourceName()",
+		}
 	})
 }

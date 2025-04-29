@@ -11,7 +11,9 @@ spec:
     destination: test
     destinationType: queue
     routingKey: '#'
-    source: test
+    sourceSelector:
+      matchLabels:
+        testing.upbound.io/example-name: test
     vhostSelector:
       matchLabels:
         testing.upbound.io/example-name: test

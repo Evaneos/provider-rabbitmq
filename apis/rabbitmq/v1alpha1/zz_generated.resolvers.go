@@ -9,6 +9,7 @@ package v1alpha1
 import (
 	"context"
 	reference "github.com/crossplane/crossplane-runtime/pkg/reference"
+	common "github.com/evaneos/provider-rabbitmq/config/common"
 	errors "github.com/pkg/errors"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -19,6 +20,22 @@ func (mg *Binding) ResolveReferences(ctx context.Context, c client.Reader) error
 
 	var rsp reference.ResolutionResponse
 	var err error
+
+	rsp, err = r.Resolve(ctx, reference.ResolutionRequest{
+		CurrentValue: reference.FromPtrValue(mg.Spec.ForProvider.Source),
+		Extract:      common.ExtractResourceName(),
+		Reference:    mg.Spec.ForProvider.SourceRef,
+		Selector:     mg.Spec.ForProvider.SourceSelector,
+		To: reference.To{
+			List:    &ExchangeList{},
+			Managed: &Exchange{},
+		},
+	})
+	if err != nil {
+		return errors.Wrap(err, "mg.Spec.ForProvider.Source")
+	}
+	mg.Spec.ForProvider.Source = reference.ToPtrValue(rsp.ResolvedValue)
+	mg.Spec.ForProvider.SourceRef = rsp.ResolvedReference
 
 	rsp, err = r.Resolve(ctx, reference.ResolutionRequest{
 		CurrentValue: reference.FromPtrValue(mg.Spec.ForProvider.Vhost),
@@ -35,6 +52,22 @@ func (mg *Binding) ResolveReferences(ctx context.Context, c client.Reader) error
 	}
 	mg.Spec.ForProvider.Vhost = reference.ToPtrValue(rsp.ResolvedValue)
 	mg.Spec.ForProvider.VhostRef = rsp.ResolvedReference
+
+	rsp, err = r.Resolve(ctx, reference.ResolutionRequest{
+		CurrentValue: reference.FromPtrValue(mg.Spec.InitProvider.Source),
+		Extract:      common.ExtractResourceName(),
+		Reference:    mg.Spec.InitProvider.SourceRef,
+		Selector:     mg.Spec.InitProvider.SourceSelector,
+		To: reference.To{
+			List:    &ExchangeList{},
+			Managed: &Exchange{},
+		},
+	})
+	if err != nil {
+		return errors.Wrap(err, "mg.Spec.InitProvider.Source")
+	}
+	mg.Spec.InitProvider.Source = reference.ToPtrValue(rsp.ResolvedValue)
+	mg.Spec.InitProvider.SourceRef = rsp.ResolvedReference
 
 	rsp, err = r.Resolve(ctx, reference.ResolutionRequest{
 		CurrentValue: reference.FromPtrValue(mg.Spec.InitProvider.Vhost),

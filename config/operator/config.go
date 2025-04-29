@@ -10,7 +10,7 @@ func Configure(p *config.Provider) {
 		r.ShortGroup = "rabbitmq"
 		r.Kind = "OperatorPolicy"
 		r.References["vhost"] = config.Reference{
-			Type: "github.com/evaneos/provider-rabbitmq/apis/rabbitmq/v1alpha1.Vhost",
+			TerraformName: "rabbitmq_vhost",
 		}
 	})
 }

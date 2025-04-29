@@ -1,6 +1,8 @@
 package exchange
 
-import "github.com/crossplane/upjet/pkg/config"
+import (
+	"github.com/crossplane/upjet/pkg/config"
+)
 
 // Configure configures individual resources by adding custom ResourceConfigurators.
 func Configure(p *config.Provider) {
@@ -9,7 +11,7 @@ func Configure(p *config.Provider) {
 		// this resource, which would be "github"
 		r.ShortGroup = "rabbitmq"
 		r.References["vhost"] = config.Reference{
-			Type: "github.com/evaneos/provider-rabbitmq/apis/rabbitmq/v1alpha1.Vhost",
+			TerraformName: "rabbitmq_vhost",
 		}
 	})
 }

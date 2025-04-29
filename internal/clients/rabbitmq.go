@@ -7,6 +7,7 @@ package clients
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
 	"github.com/pkg/errors"
@@ -25,7 +26,7 @@ const (
 	errTrackUsage           = "cannot track ProviderConfig usage"
 	errExtractCredentials   = "cannot extract credentials"
 	errUnmarshalCredentials = "cannot unmarshal rabbitmq credentials as JSON"
-	errRequiredProperty     = "missing a required property"
+	errRequiredProperty     = "missing %s required property"
 
 	endpoint = "endpoint"
 	username = "username"
@@ -69,27 +70,32 @@ func TerraformSetupBuilder(version, providerSource, providerVersion string) terr
 			return ps, errors.Wrap(err, errUnmarshalCredentials)
 		}
 
-		// Set credentials in Terraform provider configuration.
-		ps.Configuration = map[string]any{}
-		if v, ok := creds[endpoint]; ok {
-			ps.Configuration[endpoint] = v
-		} else {
-			return ps, errors.Wrap(err, errRequiredProperty)
-		}
-		if v, ok := creds[username]; ok {
-			ps.Configuration[username] = v
-		} else {
-			return ps, errors.Wrap(err, errRequiredProperty)
-		}
-		if v, ok := creds[password]; ok {
-			ps.Configuration[password] = v
-		}
-		if v, ok := creds[insecure]; ok {
-			ps.Configuration[insecure] = v
-		}
-		if v, ok := creds[proxy]; ok {
-			ps.Configuration[proxy] = v
-		}
-		return ps, nil
+		return extractConfigurationFromCreds(ps, creds)
 	}
+}
+
+func extractConfigurationFromCreds(ps terraform.Setup, creds map[string]string) (terraform.Setup, error) {
+	// Set credentials in Terraform provider configuration.
+	ps.Configuration = map[string]any{}
+	if v, ok := creds[endpoint]; ok {
+		ps.Configuration[endpoint] = v
+	} else {
+		return ps, fmt.Errorf(errRequiredProperty, endpoint)
+	}
+	if v, ok := creds[username]; ok {
+		ps.Configuration[username] = v
+	} else {
+		return ps, fmt.Errorf(errRequiredProperty, username)
+	}
+	if v, ok := creds[password]; ok {
+		ps.Configuration[password] = v
+	}
+	if v, ok := creds[insecure]; ok {
+		ps.Configuration[insecure] = v
+	}
+	if v, ok := creds[proxy]; ok {
+		ps.Configuration[proxy] = v
+	}
+
+	return ps, nil
 }

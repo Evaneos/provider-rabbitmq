@@ -1,6 +1,7 @@
 /.cache
 /.work
 /_output
+/local_tests
 cover.out
 /vendor
 /.vendor-new

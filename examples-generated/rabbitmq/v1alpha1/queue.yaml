@@ -34,7 +34,9 @@ spec:
     - configure: .*
       read: .*
       write: .*
-    user: guest
+    userSelector:
+      matchLabels:
+        testing.upbound.io/example-name: example
     vhostSelector:
       matchLabels:
         testing.upbound.io/example-name: test

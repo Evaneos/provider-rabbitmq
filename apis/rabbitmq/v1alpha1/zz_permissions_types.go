@@ -20,7 +20,16 @@ type PermissionsInitParameters struct {
 	Permissions []PermissionsPermissionsInitParameters `json:"permissions,omitempty" tf:"permissions,omitempty"`
 
 	// The user to apply the permissions to.
+	// +crossplane:generate:reference:type=github.com/evaneos/provider-rabbitmq/apis/rabbitmq/v1alpha1.User
 	User *string `json:"user,omitempty" tf:"user,omitempty"`
+
+	// Reference to a User in rabbitmq to populate user.
+	// +kubebuilder:validation:Optional
+	UserRef *v1.Reference `json:"userRef,omitempty" tf:"-"`
+
+	// Selector for a User in rabbitmq to populate user.
+	// +kubebuilder:validation:Optional
+	UserSelector *v1.Selector `json:"userSelector,omitempty" tf:"-"`
 
 	// The vhost to create the resource in.
 	// +crossplane:generate:reference:type=github.com/evaneos/provider-rabbitmq/apis/rabbitmq/v1alpha1.Vhost
@@ -57,8 +66,17 @@ type PermissionsParameters struct {
 	Permissions []PermissionsPermissionsParameters `json:"permissions,omitempty" tf:"permissions,omitempty"`
 
 	// The user to apply the permissions to.
+	// +crossplane:generate:reference:type=github.com/evaneos/provider-rabbitmq/apis/rabbitmq/v1alpha1.User
 	// +kubebuilder:validation:Optional
 	User *string `json:"user,omitempty" tf:"user,omitempty"`
+
+	// Reference to a User in rabbitmq to populate user.
+	// +kubebuilder:validation:Optional
+	UserRef *v1.Reference `json:"userRef,omitempty" tf:"-"`
+
+	// Selector for a User in rabbitmq to populate user.
+	// +kubebuilder:validation:Optional
+	UserSelector *v1.Selector `json:"userSelector,omitempty" tf:"-"`
 
 	// The vhost to create the resource in.
 	// +crossplane:generate:reference:type=github.com/evaneos/provider-rabbitmq/apis/rabbitmq/v1alpha1.Vhost
@@ -150,7 +168,6 @@ type Permissions struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	// +kubebuilder:validation:XValidation:rule="!('*' in self.managementPolicies || 'Create' in self.managementPolicies || 'Update' in self.managementPolicies) || has(self.forProvider.permissions) || (has(self.initProvider) && has(self.initProvider.permissions))",message="spec.forProvider.permissions is a required parameter"
-	// +kubebuilder:validation:XValidation:rule="!('*' in self.managementPolicies || 'Create' in self.managementPolicies || 'Update' in self.managementPolicies) || has(self.forProvider.user) || (has(self.initProvider) && has(self.initProvider.user))",message="spec.forProvider.user is a required parameter"
 	Spec   PermissionsSpec   `json:"spec"`
 	Status PermissionsStatus `json:"status,omitempty"`
 }

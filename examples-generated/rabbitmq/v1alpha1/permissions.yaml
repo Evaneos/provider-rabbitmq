@@ -12,7 +12,9 @@ spec:
     - configure: .*
       read: .*
       write: .*
-    user: mctest
+    userSelector:
+      matchLabels:
+        testing.upbound.io/example-name: test
     vhostSelector:
       matchLabels:
         testing.upbound.io/example-name: test

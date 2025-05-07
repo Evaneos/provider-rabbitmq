@@ -1619,6 +1619,16 @@ func (in *PermissionsInitParameters) DeepCopyInto(out *PermissionsInitParameters
 		*out = new(string)
 		**out = **in
 	}
+	if in.UserRef != nil {
+		in, out := &in.UserRef, &out.UserRef
+		*out = new(v1.Reference)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.UserSelector != nil {
+		in, out := &in.UserSelector, &out.UserSelector
+		*out = new(v1.Selector)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.Vhost != nil {
 		in, out := &in.Vhost, &out.Vhost
 		*out = new(string)
@@ -1729,6 +1739,16 @@ func (in *PermissionsParameters) DeepCopyInto(out *PermissionsParameters) {
 		in, out := &in.User, &out.User
 		*out = new(string)
 		**out = **in
+	}
+	if in.UserRef != nil {
+		in, out := &in.UserRef, &out.UserRef
+		*out = new(v1.Reference)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.UserSelector != nil {
+		in, out := &in.UserSelector, &out.UserSelector
+		*out = new(v1.Selector)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.Vhost != nil {
 		in, out := &in.Vhost, &out.Vhost

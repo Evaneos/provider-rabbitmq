@@ -11,5 +11,8 @@ func Configure(p *config.Provider) {
 		r.References["vhost"] = config.Reference{
 			TerraformName: "rabbitmq_vhost",
 		}
+		r.References["user"] = config.Reference{
+			TerraformName: "rabbitmq_user",
+		}
 	})
 }

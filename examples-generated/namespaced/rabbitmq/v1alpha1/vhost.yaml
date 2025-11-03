@@ -1,0 +1,12 @@
+apiVersion: rabbitmq.m.evaneos.com/v1alpha1
+kind: Vhost
+metadata:
+  annotations:
+    meta.upbound.io/example-id: rabbitmq/v1alpha1/vhost
+  labels:
+    testing.upbound.io/example-name: my_vhost
+  name: my-vhost
+  namespace: upbound-system
+spec:
+  forProvider:
+    name: my_vhost

@@ -1,0 +1,61 @@
+apiVersion: rabbitmq.m.evaneos.com/v1alpha1
+kind: OperatorPolicy
+metadata:
+  annotations:
+    meta.upbound.io/example-id: rabbitmq/v1alpha1/operatorpolicy
+  labels:
+    testing.upbound.io/example-name: test
+  name: test
+  namespace: upbound-system
+spec:
+  forProvider:
+    name: test
+    policy:
+    - applyTo: queues
+      definition:
+        expires: 1800000
+        message-ttl: 3600000
+      pattern: .*
+      priority: 0
+    vhostSelector:
+      matchLabels:
+        testing.upbound.io/example-name: guest
+
+---
+
+apiVersion: rabbitmq.m.evaneos.com/v1alpha1
+kind: Permissions
+metadata:
+  annotations:
+    meta.upbound.io/example-id: rabbitmq/v1alpha1/operatorpolicy
+  labels:
+    testing.upbound.io/example-name: guest
+  name: guest
+  namespace: upbound-system
+spec:
+  forProvider:
+    permissions:
+    - configure: .*
+      read: .*
+      write: .*
+    userSelector:
+      matchLabels:
+        testing.upbound.io/example-name: example
+    vhostSelector:
+      matchLabels:
+        testing.upbound.io/example-name: test
+
+---
+
+apiVersion: rabbitmq.m.evaneos.com/v1alpha1
+kind: Vhost
+metadata:
+  annotations:
+    meta.upbound.io/example-id: rabbitmq/v1alpha1/operatorpolicy
+  labels:
+    testing.upbound.io/example-name: test
+  name: test
+  namespace: upbound-system
+spec:
+  forProvider:
+    name: test

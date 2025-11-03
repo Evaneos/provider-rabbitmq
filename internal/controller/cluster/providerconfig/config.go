@@ -31,14 +31,14 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 		For(&v1beta1.ProviderConfig{}).
 		Watches(&v1beta1.ProviderConfigUsage{}, &resource.EnqueueRequestForProviderConfig{}).
 		Complete(providerconfig.NewReconciler(mgr, of,
-			providerconfig.WithLogger(o.Logger.WithValues("controller", name)),
+			providerconfig.WithLogger(o.Logger),
 			providerconfig.WithRecorder(event.NewAPIRecorder(mgr.GetEventRecorderFor(name)))))
 }
 
 // SetupGated adds a controller that reconciles ProviderConfigs by accounting for
 // their current usage.
 func SetupGated(mgr ctrl.Manager, o controller.Options) error {
-	o.Options.Gate.Register(func() {
+	o.Gate.Register(func() {
 		if err := Setup(mgr, o); err != nil {
 			mgr.GetLogger().Error(err, "unable to setup reconciler", "gvk", v1beta1.ProviderConfigGroupVersionKind.String())
 		}

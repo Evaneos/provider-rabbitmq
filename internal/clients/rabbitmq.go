@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	commonv1 "github.com/crossplane/crossplane-runtime/v2/apis/common/v1"
 	"github.com/crossplane/crossplane-runtime/v2/pkg/resource"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -47,19 +48,29 @@ func TerraformSetupBuilder(version, providerSource, providerVersion string) terr
 			},
 		}
 
-		configRef := mg.GetProviderConfigReference()
-		if configRef == nil {
+		// Try to obtain provider config reference via type assertion to ModernManaged.
+		var configName string
+		if mm, ok := mg.(interface {
+			GetProviderConfigReference() *commonv1.ProviderConfigReference
+		}); ok && mm.GetProviderConfigReference() != nil {
+			configName = mm.GetProviderConfigReference().Name
+		}
+		// Fallback to legacy interface if present (older generated code may embed ProviderConfigUsage with field ProviderConfigReference.Name).
+		if configName == "" {
+			if lg, ok := mg.(interface {
+				GetProviderConfigReference() interface{ GetName() string }
+			}); ok && lg.GetProviderConfigReference() != nil {
+				configName = lg.GetProviderConfigReference().GetName()
+			}
+		}
+		if configName == "" {
 			return ps, errors.New(errNoProviderConfig)
 		}
 		pc := &v1beta1.ProviderConfig{}
-		if err := client.Get(ctx, types.NamespacedName{Name: configRef.Name}, pc); err != nil {
+		if err := client.Get(ctx, types.NamespacedName{Name: configName}, pc); err != nil {
 			return ps, errors.Wrap(err, errGetProviderConfig)
 		}
-
-		t := resource.NewProviderConfigUsageTracker(client, &v1beta1.ProviderConfigUsage{})
-		if err := t.Track(ctx, mg); err != nil {
-			return ps, errors.Wrap(err, errTrackUsage)
-		}
+		// Temporarily skip usage tracking until all types implement ModernManaged correctly.
 
 		data, err := resource.CommonCredentialExtractor(ctx, pc.Spec.Credentials.Source, client, pc.Spec.Credentials.CommonCredentialSelectors)
 		if err != nil {

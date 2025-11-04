@@ -1,0 +1,56 @@
+apiVersion: rabbitmq.m.evaneos.com/v1alpha1
+kind: Permissions
+metadata:
+  annotations:
+    meta.upbound.io/example-id: rabbitmq/v1alpha1/permissions
+  labels:
+    testing.upbound.io/example-name: test
+  name: test
+  namespace: upbound-system
+spec:
+  forProvider:
+    permissions:
+    - configure: .*
+      read: .*
+      write: .*
+    userSelector:
+      matchLabels:
+        testing.upbound.io/example-name: test
+    vhostSelector:
+      matchLabels:
+        testing.upbound.io/example-name: test
+
+---
+
+apiVersion: rabbitmq.m.evaneos.com/v1alpha1
+kind: User
+metadata:
+  annotations:
+    meta.upbound.io/example-id: rabbitmq/v1alpha1/permissions
+  labels:
+    testing.upbound.io/example-name: test
+  name: test
+  namespace: upbound-system
+spec:
+  forProvider:
+    name: mctest
+    passwordSecretRef:
+      key: example-key
+      name: example-secret
+    tags:
+    - administrator
+
+---
+
+apiVersion: rabbitmq.m.evaneos.com/v1alpha1
+kind: Vhost
+metadata:
+  annotations:
+    meta.upbound.io/example-id: rabbitmq/v1alpha1/permissions
+  labels:
+    testing.upbound.io/example-name: test
+  name: test
+  namespace: upbound-system
+spec:
+  forProvider:
+    name: test

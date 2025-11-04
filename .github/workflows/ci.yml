@@ -10,14 +10,9 @@ on:
 
 env:
   # Common versions
-  GO_VERSION: '1.21'
-  GOLANGCI_VERSION: 'v1.54.0'
-  DOCKER_BUILDX_VERSION: 'v0.8.2'
-
-  # Common users. We can't run a step 'if secrets.XXX != ""' but we can run a
-  # step 'if env.XXX != ""', so we copy these to succinctly test whether
-  # credentials have been provided before trying to run steps that need them.
-  UPBOUND_MARKETPLACE_PUSH_ROBOT_USR: ${{ secrets.UPBOUND_MARKETPLACE_PUSH_ROBOT_USR }}
+  GO_VERSION: '1.24'
+  GOLANGCI_VERSION: 'v2.4.0'
+  DOCKER_BUILDX_VERSION: 'v0.28.0'
 
 jobs:
   detect-noop:
@@ -60,6 +55,7 @@ jobs:
         run: |
           make schema-version-diff
 
+
   lint:
     runs-on: ubuntu-24.04
     needs: detect-noop
@@ -100,7 +96,7 @@ jobs:
       # We could run 'make lint' but we prefer this action because it leaves
       # 'annotations' (i.e. it comments on PRs to point out linter violations).
       - name: Lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v8
         with:
           version: ${{ env.GOLANGCI_VERSION }}
 
@@ -262,14 +258,6 @@ jobs:
           version: ${{ env.DOCKER_BUILDX_VERSION }}
           install: true
 
-      - name: Login to Upbound
-        uses: docker/login-action@v3
-        if: env.UPBOUND_MARKETPLACE_PUSH_ROBOT_USR != ''
-        with:
-          registry: xpkg.upbound.io
-          username: ${{ secrets.UPBOUND_MARKETPLACE_PUSH_ROBOT_USR }}
-          password: ${{ secrets.UPBOUND_MARKETPLACE_PUSH_ROBOT_PSW }}
-
       - name: Checkout
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
         with:
@@ -316,10 +304,3 @@ jobs:
         with:
           name: output
           path: _output/**
-
-      - name: Login with up
-        run: ./.cache/tools/linux_x86_64/up-v0.28.0 login --username=${{ secrets.UPBOUND_MARKETPLACE_PUSH_ROBOT_USR }} --password="${{ secrets.UPBOUND_MARKETPLACE_PUSH_ROBOT_PSW }}"
-
-      - name: Publish Artifacts
-        if: env.UPBOUND_MARKETPLACE_PUSH_ROBOT_USR != ''
-        run: make publish BRANCH_NAME=${GITHUB_REF##*/}

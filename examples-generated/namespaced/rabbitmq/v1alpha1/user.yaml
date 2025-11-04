@@ -1,0 +1,18 @@
+apiVersion: rabbitmq.m.evaneos.com/v1alpha1
+kind: User
+metadata:
+  annotations:
+    meta.upbound.io/example-id: rabbitmq/v1alpha1/user
+  labels:
+    testing.upbound.io/example-name: test
+  name: test
+  namespace: upbound-system
+spec:
+  forProvider:
+    name: mctest
+    passwordSecretRef:
+      key: example-key
+      name: example-secret
+    tags:
+    - administrator
+    - management
